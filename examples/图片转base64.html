@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>图片转base64</title>
+</head>
+<body>
+  <!-- 
+    Data URL由data:前缀、MIME类型（表明数据类型）、base64标志位（如果是文本，则可选）以及数据本身四部分组成。
+    Data URL格式 data:[<mediatype>][;base64],data 
+  -->
+  <!-- <script src="data:application/javascript,alert(123)"></script> -->
+  <!-- 使用原生Web API编码btoa()将命令转换为base64 -->
+  <!-- <script src="data:application/javascript;base64,YWxlcnQoMTIzKQ=="></script> -->
+
+  <input type="file">
+  <br>
+  <img src="">
+  <script>
+    const inputEl = document.querySelector('input')
+    const imgEl = document.querySelector('img')
+
+    inputEl.onchange = e => {
+      const file = e.target.files[0]
+      console.log(file)
+      const type = file.type
+      if (!type.startsWith('image')) {
+        alert('请选择图片')
+        return
+      }
+      /*const reader = new FileReader()
+      reader.onload = e2 => {
+        const res = e2.target.result
+        console.log(res)
+        imgEl.src = res
+      }
+      reader.readAsDataURL(file)*/
+      // 使用封装函数
+      getBase64(file, base64Url => {
+        console.log(base64Url)
+        imgEl.src = base64Url
+      })
+    }
+
+    // 封装成函数
+    function getBase64(img, callback) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => callback(reader.result));
+      reader.readAsDataURL(img);
+    }
+  </script>
+</body>
+</html>

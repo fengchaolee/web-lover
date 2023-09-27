@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta lang="zh_CN">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>大文件分片上传</title>
+</head>
+<body>
+
+  <input type="file" name="">
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/spark-md5/3.0.2/spark-md5.js"></script>
+  <script>
+    const inputEl = document.querySelector('input')
+    inputEl.onchange = async e => {
+      const file = e.target.files[0]
+      if (!file) return
+      const chunks = createChunks(file, 1)
+      console.log(chunks)
+      const hash = await getFileHash(chunks)
+      console.log(hash)
+    }
+
+    /**
+     * 使用第三方库spark-md5计算文件hash值
+     * 增量方式
+     * 
+     */
+    function getFileHash(chunks){
+      return new Promise(resolve => {
+        const spark = new SparkMD5()
+
+        function readChunk(i){
+          if (i >= chunks.length) {
+            resolve(spark.end())
+            return
+          }
+          const blob = chunks[i]
+          const fReader = new FileReader()
+          fReader.onload = e => {
+            // 拿到读取到的字节数组
+            const bytes = e.target.result
+            spark.append(bytes)
+            readChunk(i + 1)
+          }
+          fReader.readAsArrayBuffer(blob)
+        }
+        
+        readChunk(0)
+      })
+    }
+
+    /**
+     * 创建分片，大小以MB为单位
+     * 分片信息中只有基本信息没有数据信息，只是简单的运算，非常快
+     */
+    function createChunks(file, chunkSize){
+      chunkSize = chunkSize * 1024 * 1024
+      let chunks = []
+      for(let i = 0; i < file.size; i += chunkSize){
+        const chunk = file.slice(i, i + chunkSize)
+        chunks.push(chunk)
+      }
+      return chunks
+    }
+  </script>
+</body>
+</html>
